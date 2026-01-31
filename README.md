@@ -14,7 +14,7 @@
 
 ## Структура репозитория
 
-```text
+
 infra-lab/
 ├── terraform/
 │   ├── main.tf
@@ -32,7 +32,7 @@ infra-lab/
     ├── ansible1.png
     ├── ansible2.png
     ├── Nginx-proxy1.png
-    └── Nginx-proxy2.png
+    └── Nginx-proxy2.png 
 
 
 ## 1. Виртуальные машины в Yandex Cloud
