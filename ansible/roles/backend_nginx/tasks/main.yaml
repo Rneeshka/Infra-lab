@@ -1,0 +1,16 @@
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Create index.html
+  copy:
+    dest: /var/www/html/index.html
+    content: "Hello from {{ inventory_hostname }}!\n"
+
+- name: Ensure nginx is running
+  service:
+    name: nginx
+    state: started
+    enabled: yes

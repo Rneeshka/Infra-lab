@@ -1,0 +1,9 @@
+server {
+    listen 3000;
+
+    location / {
+        proxy_pass http://158.160.73.229;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}

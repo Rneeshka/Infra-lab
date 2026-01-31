@@ -1,0 +1,14 @@
+- hosts: all
+  become: true
+  roles:
+    - common
+
+- hosts: backend
+  become: true
+  roles:
+    - backend_nginx
+
+- hosts: proxy
+  become: yes
+  roles:
+    - proxy_nginx

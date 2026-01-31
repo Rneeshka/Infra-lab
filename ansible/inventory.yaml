@@ -1,0 +1,18 @@
+---
+all:
+  children:
+    proxy:
+      hosts:
+        proxy-1:
+          ansible_host: 158.160.87.48
+    backend:
+      hosts:
+        backend-1:
+          ansible_host: 158.160.73.229
+        backend-2:
+          ansible_host: 158.160.80.40
+
+  vars:
+    ansible_user: ubuntu
+    ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
