@@ -1,3 +1,4 @@
+
 # Infra Lab — Terraform + Ansible
 
 ## Описание
@@ -18,13 +19,16 @@ infra-lab/
     ├── inventory.yaml
     ├── playbook.yaml
     └── roles/
-    ## Скриншоты
+
+## Скриншоты
 
 ### 1. Виртуальные машины в Yandex Cloud
 ![VM list](screenshots/vms.png)
 
 ### 2. Выполнение Ansible playbook
-![Ansible run](screenshots/ansible.png)
+![Ansible run 1](screenshots/ansible1.png)
+![Ansible run 2](screenshots/ansible2.png)
 
-### 3. Результат в браузере
-![Nginx proxy](screenshots/browser.png)
+### 3. Результат работы Nginx proxy (порт 3000)
+![Nginx proxy 1](screenshots/Nginx-proxy1.png)
+![Nginx proxy 2](screenshots/Nginx-proxy2.png)
