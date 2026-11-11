@@ -13,6 +13,7 @@
   template:
     src: nginx_proxy.conf.j2
     dest: /etc/nginx/sites-available/proxy.conf
+  notify: Reload nginx
 
 - name: Enable proxy config
   file:
@@ -20,8 +21,12 @@
     dest: /etc/nginx/sites-enabled/proxy.conf
     state: link
 
-- name: Restart nginx
+- name: Validate nginx config
+  command: nginx -t
+  changed_when: false
+
+- name: Ensure nginx is running
   service:
     name: nginx
-    state: restarted
+    state: started
     enabled: yes

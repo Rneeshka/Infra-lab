@@ -6,3 +6,7 @@
 # Ansible
 *.retry
 .DS_Store
+
+# Секреты Terraform — не коммитить
+*.tfvars
+!*.tfvars.example

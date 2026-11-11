@@ -1,0 +1,5 @@
+# Скопируйте в terraform.tfvars и заполните своими значениями.
+# terraform.tfvars в .gitignore и в репозиторий не попадает.
+cloud_id  = "<your-cloud-id>"
+folder_id = "<your-folder-id>"
+yc_token  = "<your-oauth-token>"   # или: export TF_VAR_yc_token=$(yc iam create-token)
