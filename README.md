@@ -1,56 +1,55 @@
-# Infra Lab — Terraform + Ansible в Yandex Cloud
+# Infra Lab – Terraform + Ansible в Yandex Cloud
 
-Разворачиваю небольшую инфраструктуру «с нуля» по принципу Infrastructure as Code: Terraform создаёт сеть и виртуальные машины, Ansible их настраивает. На выходе — Nginx-прокси, который балансирует трафик между двумя бэкендами.
+Лаба: поднять инфраструктуру с нуля кодом. Terraform создаёт сеть и три виртуалки, Ansible их настраивает. В итоге Nginx-прокси раскидывает запросы на два бэкенда.
 
-## Архитектура
+## Схема
 
 ```
-                 :3000
-  Клиент ──────► proxy-1 (Nginx, upstream, round robin)
-                    │
-          ┌─────────┴─────────┐
-          ▼                   ▼
-     backend-1 (Nginx)   backend-2 (Nginx)
-     "Hello from          "Hello from
-      backend-1!"          backend-2!"
+              :3000
+  клиент ---> proxy-1 (Nginx, upstream)
+                 |
+         +-------+-------+
+         v               v
+    backend-1        backend-2
+    (Nginx)          (Nginx)
 
-  Все ВМ — в одной VPC-подсети 10.10.0.0/24 (ru-central1-b)
+  всё в одной подсети 10.10.0.0/24, ru-central1-b
 ```
 
-## Что делает каждая часть
+Каждый бэкенд отвечает `Hello from <hostname>!` – так видно, кто именно ответил.
 
-**Terraform** (`terraform/`)
-- VPC-сеть и подсеть `10.10.0.0/24`;
-- 3 ВМ Ubuntu (2 vCPU, 2 ГБ RAM): `proxy-1`, `backend-1`, `backend-2`;
-- SSH-ключ пробрасывается через metadata;
-- outputs — публичные IP всех машин.
+## Что внутри
 
-**Ansible** (`ansible/`), три роли:
-- `common` — hostname и базовые утилиты (net-tools, dnsutils, curl и т. д.);
-- `backend_nginx` — Nginx и страница `Hello from <hostname>!`, чтобы было видно, какой бэкенд ответил;
-- `proxy_nginx` — Nginx на порту 3000 с `upstream` из всех хостов группы `backend` (список берётся из inventory, а не захардкожен), проверка конфига `nginx -t` и reload через handler только при изменениях.
+`terraform/`
+- сеть и подсеть 10.10.0.0/24
+- 3 ВМ на Ubuntu (2 vCPU, 2 ГБ): proxy-1, backend-1, backend-2
+- SSH-ключ через metadata
+- на выходе – IP всех машин
 
-## Запуск
+`ansible/`, три роли:
+- `common` – hostname и базовые утилиты
+- `backend_nginx` – Nginx и страница с именем хоста
+- `proxy_nginx` – Nginx на 3000 порту, в `upstream` попадают все хосты из группы `backend` в inventory. Перед применением конфиг проверяется `nginx -t`, перезагрузка только если конфиг поменялся
+
+## Как запустить
 
 ```bash
-# 1. Секреты: шаблон -> свой файл (terraform.tfvars в .gitignore)
+# секреты – в свой файл, он в .gitignore
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 
-# 2. Инфраструктура
 cd terraform
 terraform init
 terraform apply
-terraform output          # IP машин -> вписать в ansible/inventory.yaml
+terraform output        # IP вписать в ansible/inventory.yaml
 
-# 3. Настройка
 cd ../ansible
 ansible-playbook -i inventory.yaml playbook.yaml
 
-# 4. Проверка балансировки: ответы должны чередоваться
+# проверить балансировку – ответы должны чередоваться
 for i in 1 2 3 4; do curl -s http://<proxy_ip>:3000; done
 ```
 
-Удалить всё после проверки: `terraform destroy`.
+После проверки всё сносится `terraform destroy`.
 
 ## Структура
 
@@ -71,26 +70,26 @@ infra-lab/
 └── screenshots/
 ```
 
-## Результат
+## Скриншоты
 
-Виртуальные машины в Yandex Cloud:
+Машины в Yandex Cloud:
 
 ![VM list](screenshots/vms.png)
 
-Прогон Ansible playbook:
+Прогон плейбука:
 
 ![Ansible run 1](screenshots/ansible1.png)
 ![Ansible run 2](screenshots/ansible2.png)
 
-Ответ через Nginx-прокси на порту 3000 (скриншот снят до правки конфига: тогда прокси смотрел только на backend-1, сейчас upstream включает оба бэкенда):
+Ответ через прокси. Скрин старый – тогда прокси был прибит к одному backend-1 (второй простаивал, это потом и поправил). Сейчас в upstream оба:
 
 ![Nginx proxy 1](screenshots/Nginx-proxy1.png)
 ![Nginx proxy 2](screenshots/Nginx-proxy2.png)
 
-## Что можно улучшить дальше
+## Что бы доделал
 
-- генерировать `inventory` из `terraform output` автоматически, а не вписывать IP руками;
-- закрыть бэкенды от интернета (без NAT) и ходить к ним только через прокси / bastion;
-- security groups вместо открытых портов;
-- remote state Terraform в Object Storage;
-- health checks и мониторинг (Prometheus + node_exporter).
+- inventory генерировать из `terraform output`, а не вписывать IP руками
+- убрать у бэкендов публичные IP, ходить к ним только через прокси или bastion
+- security groups
+- state Terraform хранить в Object Storage
+- мониторинг: Prometheus + node_exporter
